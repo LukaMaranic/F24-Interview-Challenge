@@ -9,9 +9,9 @@ React frontend and a minimal PHP API using Nginx and MariaDB.
 
 No host PHP, Composer, Nginx, or MariaDB installation is required.
 
-## Start the backend
+## Start the application
 
-Optionally copy the Compose environment file to customize ports or credentials:
+The default values work without additional configuration. To customize ports or credentials, copy `.env.example` to `.env`.
 
 ```powershell
 Copy-Item .env.example .env
@@ -23,10 +23,9 @@ Build and start all services:
 docker compose up -d --build
 ```
 
-Create the database tables and optional example records:
+The database migration runs automatically. Example records are optional:
 
 ```powershell
-docker compose exec app php database/migrate.php
 docker compose exec app php database/seed.php
 ```
 
@@ -49,7 +48,7 @@ Expected response:
 
 ```text
 GET    /api/health
-GET    /api/folders/{id}/entries
+GET    /api/folders/{id}/entries?limit=50
 POST   /api/folders
 DELETE /api/folders/{id}
 GET    /api/files?name={name}&folder_id={optional-folder-id}
@@ -57,6 +56,10 @@ GET    /api/files/suggestions?prefix={prefix}&folder_id={optional-folder-id}
 POST   /api/files
 DELETE /api/files/{id}
 ```
+
+Exact search uses `name`. Prefix suggestions use `prefix` and return at most ten files. Add `folder_id` to either request to search within one folder; omit it to search across all files.
+
+Folder entries support `folder_after_id` and `file_after_id` cursors returned by the previous response. The maximum page size is 100.
 
 Create a folder and a file:
 
@@ -73,3 +76,21 @@ docker compose down
 ```
 
 MariaDB data is stored in the named `mariadb_data` Docker volume.
+
+To permanently remove all local database data and start clean:
+
+```powershell
+docker compose down -v
+docker compose up -d --build
+```
+
+## Development mode
+
+The Compose environment runs in debug mode. React uses the Vite development server, PHP uses its development configuration, and both source directories are mounted into their containers.
+
+Nginx is the only public service:
+
+```text
+/      → React
+/api/* → PHP-FPM → MariaDB
+```
