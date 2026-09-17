@@ -7,7 +7,6 @@ use App\Database;
 require dirname(__DIR__).'/bootstrap.php';
 
 $database = Database::connect();
-$database->exec('DROP TABLE IF EXISTS items');
 $database->exec(
     'CREATE TABLE IF NOT EXISTS folders (
         id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

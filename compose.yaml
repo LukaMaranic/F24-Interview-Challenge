@@ -23,9 +23,27 @@ services:
     volumes:
       - ./backend:/var/www/html
     depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  migrate:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    command: ["php", "database/migrate.php"]
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ${DB_DATABASE:-f24}
+      DB_USERNAME: ${DB_USERNAME:-f24}
+      DB_PASSWORD: ${DB_PASSWORD:-local-development-password}
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
       db:
         condition: service_healthy
-    restart: unless-stopped
+    restart: "no"
 
   nginx:
     image: nginx:1.29-alpine
